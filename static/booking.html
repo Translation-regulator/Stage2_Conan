@@ -4,8 +4,89 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Booking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/booking.css"/>
+  <link rel="shortcut icon" href="#">
+  <script src="/static/booking.js" defer></script>
 </head>
 <body>
-  
+  <div class="container">
+    <nav>
+      <div class="nav-title">台北一日遊</div>
+      <div>
+        <div class="nav-reserve">預定行程</div>
+        <div class="nav-login">登入/註冊</div>
+      </div>
+    </nav>
+  </div>
+  <main>
+    <header class="section-container"></header>
+    <div class="booking section-container">
+      <img class="booking-image" alt="圖片">
+      <div class="booking-info" style="position: relative;">  <!-- 加上定位，使後代的絕對元素以此為參照 -->
+        <div class="booking-title"></div>
+        <div class="booking-date"><span>日期：</span></div>
+        <div class="booking-time"><span>時間：</span></div>
+        <div class="booking-price"><span>費用：</span></div>
+        <div class="booking-address"><span>地點：</span></div>
+        <img class="delete-icon" src="/static/image/delete.png" alt="刪除按鈕"/>
+      </div>
+    </div>
+    
+    <!-- 空狀態顯示用 -->
+    <div class="booking-empty section-container" style="display: none;">
+      <p class="empty-message">目前沒有任何預定行程</p>
+    </div>
+
+  </main>
+
+  <div class="booking-hr"></div>
+
+  <div class="contact-info section-container">
+    <div class="contact-title">您的聯絡資訊</div>
+    <div class="contact-name">
+      <label for="name">聯絡姓名：</label>
+      <input type="text" id="name" name="name" required>
+    </div>
+    <div class="contact-email">
+      <label for="email">聯絡信箱：</label>
+      <input type="email" id="email" name="email" required>
+    </div>
+    <div class="contact-phone">
+      <label for="phone">手機號碼：</label>
+      <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" required>
+    </div>
+    <div class="contact-notify">請保持手機暢通，準時到達，導覽人員將用手機與您聯繫，務必留下正確的聯絡方式</div>
+  </div>
+
+  <div class="booking-hr"></div>
+
+  <div class="credit-card-info section-container">
+    <div class="credit-card-title">信用卡付款資訊</div>
+    <div class="credit-card-number">
+      <label for="card-number">卡片號碼：</label>
+      <input type="text" id="card-number" name="card-number" placeholder="**** **** **** ****" pattern="[0-9]{16}" required>
+    </div>
+    <div class="credit-card-expiration">
+      <label for="card-expiration">過期時間：</label>
+      <input type="text" id="card-expiration" name="card-expiration" placeholder="MM/YY" pattern="[0-9]{2}/[0-9]{2}" required>
+    </div>
+    <div class="credit-card-cvv">
+      <label for="card-cvv">驗證密碼：</label>
+      <input type="password" id="card-cvv" name="card-cvv" placeholder="CVV" pattern="[0-9]{3}" required>
+    </div>
+  </div>
+
+  <div class="booking-hr"></div>
+
+  <div class="booking-terms section-container">
+    <div class="booking-fee">總價：新台幣2000元</div>
+    <div class="booking-button">
+      <div class="booking-button-text">確認訂購並付款</div>
+    </div>
+  </div>
+  <footer>
+    <div class="footer-text">COPYRIGHT © 2021 台北一日遊</div>
+  </footer>
 </body>
 </html>

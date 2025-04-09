@@ -1,0 +1,382 @@
+/* 統一 Box-Sizing 設定 */
+html {
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
+/* 頁面基本樣式 */
+body {
+    font-family: 'Noto Sans TC';
+    margin: 0;
+    padding-bottom: 80px; /* 留出空間讓 footer 不會蓋過圖片 */
+    overflow-x: hidden;  /* 如有必要，可隱藏水平捲軸 */
+}
+
+/* 主要容器設定 */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+    border-bottom: 1px solid rgba(232, 232, 232, 1);
+}
+
+/* 導航條設定 */
+nav {
+    display: flex;
+    align-items: center;
+    max-width: 1200px;
+    width: 90%;
+    justify-content: space-between;
+}
+
+.nav-title {
+    font-size: 30px;
+    color: #448899;
+    font-weight: 700;
+    padding: 10px 0;
+    text-align: center;
+    cursor: pointer;
+}
+
+nav div {
+    display: flex;
+    align-items: center;
+}
+
+.nav-reserve, .nav-login {
+    font-weight: 500;
+    font-size: 16px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.nav-login {
+    padding-right: 0;
+}
+
+main {
+    margin: 0 auto;
+}
+
+.section-container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding-top: 20px;
+    padding-bottom:15px;
+}
+
+header {
+    font-family: Noto Sans TC;
+    font-weight: 700;
+    font-size: 19px;
+    line-height: 20px;
+    vertical-align: middle;
+    color: rgba(102, 102, 102, 1);
+    width: 1000px;
+    margin: 0 auto; /* 確保 header 本身居中 */
+    padding-top: 40px;
+    padding-bottom: 30px;
+}
+
+/* 主要內容：含圖片和預訂資訊 */
+.booking {
+    max-width: 980px;
+    margin: 0 auto;
+    display: flex;         /* 預設為橫向排列 */
+    position: relative;
+}
+
+.booking-image {
+    max-width: 250px;
+    width: 100%;          /* 確保圖片區塊全寬 */
+    height: 200px;
+    padding-right: 30px;   /* 與右邊資訊做間距 */
+    object-fit: cover;     /* 如圖片不滿尺寸，自動裁切 */
+}
+
+/* 假設包住標題、日期、時間等資訊的容器 */
+.booking-info {
+    width: 100%; /* 讓這個容器佔滿剩餘空間 */
+}
+
+.booking-title {
+    font-family: Noto Sans TC;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 20px;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    color: rgba(68, 136, 153, 1);
+    padding-bottom: 25px;
+}
+
+.booking-date, .booking-time, .booking-price, .booking-address {
+    font-family: Noto Sans TC;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 20px;
+    vertical-align: middle;
+    color: rgba(102, 102, 102, 1);
+    padding-bottom: 15px;
+}
+
+.booking-date span, .booking-time span, .booking-price span, .booking-address span {
+    font-weight: 700;
+}
+
+/* 刪除 icon */
+.delete-icon {
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+}
+
+.booking-empty {
+    max-width: 980px;
+    font-size: 20px;
+    color: #666;
+    margin: 0 auto;
+    font-family: Noto Sans TC;
+    font-weight: 400;
+    font-size: 16px;
+    vertical-align: middle;
+    color: rgba(102, 102, 102, 1);
+}
+
+.booking-hr {
+    border: 1px solid rgba(232, 232, 232, 1);
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+.contact-info {
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+.contact-title {
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    font-family: Noto Sans TC;
+    font-weight: 700;
+    font-size: 19px;
+    line-height: 16px;
+    vertical-align: middle;
+    color: rgba(102, 102, 102, 1);
+}
+
+.contact-name, .contact-email, .contact-phone {
+    box-sizing: border-box;
+    margin-bottom: 15px;
+    font-family: Noto Sans TC;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 13.3px;
+    vertical-align: middle;
+    color: rgba(102, 102, 102, 1);
+}
+
+.contact-name input[type="text"],
+.contact-email input[type="email"],
+.contact-phone input[type="tel"] {
+    font-family: Noto Sans TC;
+    width: 200px;
+    height: 38px;
+    border-radius: 5px;
+    border: 1px solid rgba(232, 232, 232, 1);
+    padding-left: 10px;
+}
+
+.contact-notify {
+    font-family: Noto Sans TC;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    vertical-align: middle;
+    color: rgba(102, 102, 102, 1);
+}
+
+.credit-card-info {
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+.credit-card-title {
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    font-family: Noto Sans TC;
+    font-weight: 700;
+    font-size: 19px;
+    line-height: 16px;
+    vertical-align: middle;
+    color: rgba(102, 102, 102, 1);
+}
+
+.credit-card-name, .credit-card-number, .credit-card-expiration, .credit-card-cvv {
+    box-sizing: border-box;
+    margin-bottom: 15px;
+    font-family: Noto Sans TC;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 13.3px;
+    vertical-align: middle;
+    color: rgba(102, 102, 102, 1);
+}
+
+.credit-card-name input[type="text"],
+.credit-card-number input[type="text"],
+.credit-card-expiration input[type="text"],
+.credit-card-cvv input[type="password"] {
+    font-family: Noto Sans TC;
+    width: 200px;
+    height: 38px;
+    border-radius: 5px;
+    border: 1px solid rgba(232, 232, 232, 1);
+    padding-left: 10px;
+}
+
+.booking-terms {
+    max-width: 980px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.booking-fee {
+    font-family: Noto Sans TC;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 13.3px;
+    text-align: right;
+    vertical-align: middle;
+    color: rgba(102, 102, 102, 1);
+    padding-bottom: 22px;
+}
+
+.booking-button {
+    width: 173px;
+    height: 36px;
+    border-radius: 5px;
+    background: rgba(68, 136, 153, 1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px auto;
+    cursor: pointer;
+}
+
+.booking-button-text {
+    font-family: Noto Sans TC;
+    font-weight: 400;
+    font-size: 19px;
+    line-height: 16px;
+    text-align: center;
+    color: rgba(255, 255, 255, 1);
+}
+
+footer {
+    position: fixed;      
+    background: rgba(117, 117, 117, 1);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px 0;
+  }
+  
+  .footer-text {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 1);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+
+/* 平板版設定：當 viewport 寬度為 768px 或更小 */
+@media (max-width: 768px) {
+    .booking {
+        position: relative; /* 加上此行，讓容器成為定位參照 */
+        flex-direction: column;
+        align-items: center;
+        width: 100%;      /* 填滿整個畫面 */
+        max-width: none;  /* 取消 max-width 限制 */
+        margin: 0;        /* 取消自動置中 */
+        padding:10px;  /* 如有需要左右內邊距 */
+    }
+    
+    .delete-icon {
+        position: absolute; /* 將此元素設為絕對定位 */
+        top: auto;
+        bottom: 10px;
+        right: 10px;
+    }
+  
+    .booking-image {
+        padding-right: 0;
+        margin-bottom: 20px;
+        width: 100%;      /* 加上這行讓圖片撐滿容器 */
+        max-width: 100%;
+        height: auto;
+    }
+  
+    .section-container {
+        margin: 0;
+        padding-top: 20px;
+        padding-bottom: 15px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+  
+    .booking-info {
+        max-width: 100%;
+    }
+}
+
+/* 手機版設定：當 viewport 寬度為 480px 或更小 */
+@media (max-width: 360px) {
+    .nav-title {
+        font-size: 20px;
+        line-height: 28px;
+    }
+
+    .nav-login, .nav-reserve {
+        font-size: 14px;
+    }
+
+    .booking {
+        position: relative; /* 同樣確保容器為定位參照 */
+    }
+
+    .delete-icon {
+        position: absolute; /* 確保 delete-icon 以絕對定位方式顯示 */
+        top: auto;
+        bottom: 0px;
+        right: 0px;
+    }
+  
+    .booking-image {
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+    .booking-terms {
+        width: 100%;
+    }
+}
+

@@ -34,6 +34,7 @@ window.addEventListener('load', () => {
   setupEventListeners();
 });
 
+// 綁定景點選項事件
 function setupEventListeners() {
   optionA.addEventListener('change', updateFee);
   optionB.addEventListener('change', updateFee);
@@ -131,14 +132,15 @@ function updateDotStyle() {
   });
 }
 
-// --------------------- 以下為登入登出與註冊相關邏輯 ---------------------
+// --------------------- 登入/註冊與預訂行程功能 ---------------------
 
-// 1. 取得按鈕與 Dialog 元素
-const loginButton = document.querySelector(".nav-login"); // 右上角「登入/註冊」按鈕
+// 取得右上角「登入/註冊」按鈕與彈窗相關 DOM
+const loginButton = document.querySelector(".nav-login");
+const reserveButton = document.querySelector(".nav-reserve");
 const dialogOverlay = document.getElementById("dialog-overlay");
 const dialogCloseBtns = document.querySelectorAll(".dialog-close-btn");
 
-// 取得表單切換的按鈕
+// 取得表單切換的彈窗
 const dialogSignin = document.getElementById("dialog-signin");
 const dialogSignup = document.getElementById("dialog-signup");
 const toSignupBtn = document.getElementById("to-signup");
@@ -151,31 +153,19 @@ const signinBtn = dialogSignin.querySelector(".dialog-btn");
 const signupInputs = dialogSignup.querySelectorAll(".input-group input");
 const signupBtn = dialogSignup.querySelector(".dialog-btn");
 
-// 2. 取得使用者資訊函式
-async function getUserInfo(token) {
-  try {
-    const response = await fetch('/api/user/auth', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    // 可依需求在頁面上顯示使用者名稱或其他資訊
-  } catch (error) {
-    console.error('取得使用者資訊失敗：', error);
-  }
-}
-
-// 3. 更新登入狀態
+// 更新使用者登入狀態
 function updateLoginStatus() {
   const token = localStorage.getItem('jwtToken');
   if (token) {
     loginButton.textContent = "登出系統";
-    getUserInfo(token);
+    // 你也可以呼叫 getUserInfo(token) 取得更多使用者資訊
   } else {
     loginButton.textContent = "登入/註冊";
   }
 }
 updateLoginStatus();
 
-// 4. 修改按鈕點擊行為：已登入則登出，未登入則開啟登入 pop-up
+// 登入/登出按鈕點擊行為：若已登入則登出，未登入則顯示登入彈窗
 loginButton.addEventListener("click", () => {
   const token = localStorage.getItem('jwtToken');
   if (token) {
@@ -184,29 +174,45 @@ loginButton.addEventListener("click", () => {
     updateLoginStatus();
     window.location.reload();
   } else {
-    // 每次打開前，預設顯示「登入表單」，隱藏「註冊表單」
+    // 顯示登入彈窗
     dialogSignin.style.display = "block";
     dialogSignup.style.display = "none";
-    // 加上 active 類
     dialogOverlay.classList.add("active");
   }
 });
 
-// 5. 關閉彈窗
+// 針對預定行程按鈕（.nav-reserve）也進行綁定
+if (reserveButton) {
+  reserveButton.addEventListener("click", () => {
+    const token = localStorage.getItem('jwtToken');
+    if (token) {
+      // 若已登入則直接導向 booking 頁面
+      window.location.href = "/booking";
+    } else {
+      // 未登入則跳出登入彈窗
+      dialogSignin.style.display = "block";
+      dialogSignup.style.display = "none";
+      dialogOverlay.classList.add("active");
+    }
+  });
+} else {
+  console.error("無法找到 .nav-reserve 元素，請確認 HTML 結構");
+}
+
+// 關閉彈窗按鈕點擊事件
 dialogCloseBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     dialogOverlay.classList.remove("active");
   });
 });
-
-// (可選) 點擊遮罩區域也關閉
+// (可選) 點擊遮罩層也關閉彈窗
 dialogOverlay.addEventListener("click", (event) => {
   if (event.target === dialogOverlay) {
     dialogOverlay.classList.remove("active");
   }
 });
 
-// 6. 切換表單
+// 切換表單
 toSignupBtn.addEventListener("click", () => {
   dialogSignin.style.display = "none";
   dialogSignup.style.display = "block";
@@ -216,15 +222,27 @@ toSigninBtn.addEventListener("click", () => {
   dialogSignup.style.display = "none";
 });
 
-// 7. 登入功能：綁定登入按鈕事件
-if (signinBtn) {
-  signinBtn.addEventListener("click", () => {
-    const email = signinInputs[0].value.trim();
-    const password = signinInputs[1].value.trim();
-    userSignin(email, password);
-  });
+// 輔助函式：驗證電子信箱格式
+function validateEmail(email) {
+  const regex = /^[^@]+@[^@]+$/;
+  return regex.test(email);
 }
 
+// 輔助函式：在彈窗中顯示訊息
+function displayMessage(dialog, type, message) {
+  const container = dialog.querySelector('.dialog-inner-content');
+  let messageEl = container.querySelector('.dialog-message');
+  if (!messageEl) {
+    messageEl = document.createElement('div');
+    messageEl.classList.add('dialog-message');
+    const button = container.querySelector('.dialog-btn');
+    container.insertBefore(messageEl, button);
+  }
+  messageEl.textContent = message;
+  messageEl.style.color = type === 'error' ? 'red' : 'green';
+}
+
+// 登入功能
 async function userSignin(email, password) {
   if (!email || !password) {
     displayMessage(dialogSignin, 'error', "請填寫完整的登入資訊");
@@ -246,6 +264,7 @@ async function userSignin(email, password) {
     } else {
       localStorage.setItem('jwtToken', data.token);
       updateLoginStatus();
+      // 登入成功後重新導向回目前景點頁面
       window.location.href = `/attraction/${attractionId}`;
     }
   } catch (error) {
@@ -253,23 +272,21 @@ async function userSignin(email, password) {
   }
 }
 
-// 8. 註冊功能：綁定註冊按鈕事件
-if (signupBtn) {
-  signupBtn.addEventListener("click", () => {
-    const name = signupInputs[0].value.trim();
-    const email = signupInputs[1].value.trim();
-    const password = signupInputs[2].value.trim();
-    userSignup(name, email, password);
+// 綁定登入按鈕事件
+if (signinBtn) {
+  signinBtn.addEventListener("click", () => {
+    const email = signinInputs[0].value.trim();
+    const password = signinInputs[1].value.trim();
+    userSignin(email, password);
   });
 }
 
+// 註冊功能
 async function userSignup(name, email, password) {
-  // 前端驗證：所有欄位必填
   if (!name || !email || !password) {
     displayMessage(dialogSignup, 'error', "請填寫完整的註冊資訊");
     return;
   }
-  // 驗證電子信箱格式
   if (!validateEmail(email)) {
     displayMessage(dialogSignup, 'error', "請輸入符合格式的電子信箱");
     return;
@@ -296,22 +313,58 @@ async function userSignup(name, email, password) {
   }
 }
 
-// 輔助函式：驗證電子信箱格式
-function validateEmail(email) {
-  const regex = /^[^@]+@[^@]+$/;
-  return regex.test(email);
+// 綁定註冊按鈕事件
+if (signupBtn) {
+  signupBtn.addEventListener("click", () => {
+    const name = signupInputs[0].value.trim();
+    const email = signupInputs[1].value.trim();
+    const password = signupInputs[2].value.trim();
+    userSignup(name, email, password);
+  });
 }
 
-// 輔助函式：在對話框中顯示訊息
-function displayMessage(dialog, type, message) {
-  const container = dialog.querySelector('.dialog-inner-content');
-  let messageEl = container.querySelector('.dialog-message');
-  if (!messageEl) {
-    messageEl = document.createElement('div');
-    messageEl.classList.add('dialog-message');
-    const button = container.querySelector('.dialog-btn');
-    container.insertBefore(messageEl, button);
+// --------------------- 預訂行程功能 ---------------------
+
+// 取得「開始預約行程」按鈕
+const startBookingBtn = document.querySelector('#startBooking');
+
+// 綁定「開始預約行程」的點擊事件
+startBookingBtn.addEventListener('click', async () => {
+  const token = localStorage.getItem('jwtToken');
+  if (!token) {
+    // 未登入則呼叫登入彈窗
+    dialogSignin.style.display = "block";
+    dialogSignup.style.display = "none";
+    dialogOverlay.classList.add("active");
+    return;
   }
-  messageEl.textContent = message;
-  messageEl.style.color = type === 'error' ? 'red' : 'green';
-}
+
+  // 收集預訂行程所需的資料：景點 ID、日期、時段與費用
+  const bookingData = {
+    attractionId: Number(attractionId),
+    date: dateInput.value,
+    time: optionA.checked ? "morning" : "afternoon",
+    price: optionA.checked ? 2000 : 2500
+  };
+
+  try {
+    const response = await fetch('/api/booking', {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify(bookingData)
+    });
+    const result = await response.json();
+
+    if (response.ok && result.ok) {
+      // 預訂成功導向預訂行程頁面
+      window.location.href = "/booking";
+    } else {
+      alert(result.message || "建立預訂行程失敗");
+    }
+  } catch (error) {
+    console.error("建立預訂行程失敗：", error);
+  }
+});

@@ -13,8 +13,6 @@ from pydantic import BaseModel
 from jwt.exceptions import PyJWTError
 from datetime import timedelta, datetime
 
-
-
 # 載入環境變數
 load_dotenv()
 
@@ -48,7 +46,7 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/image", StaticFiles(directory="static/image"), name="image")
 
-# Static Pages (Never Modify Code in this Block)
+# ------------------ Static Pages (Never Modify Code in this Block) ------------------
 @app.get("/", include_in_schema=False)
 async def index(request: Request):
 	return FileResponse("./static/index.html", media_type="text/html")
@@ -61,6 +59,7 @@ async def booking(request: Request):
 @app.get("/thankyou", include_in_schema=False)
 async def thankyou(request: Request):
 	return FileResponse("./static/thankyou.html", media_type="text/html")
+# -------------------------------------------------------------------------------------
 
 @app.get("/api/attractions")
 def get_attractions(page: int = Query(0), keyword: str = Query(None)):
@@ -110,7 +109,6 @@ def get_attractions(page: int = Query(0), keyword: str = Query(None)):
             for record in records:
                 record['images'] = json.loads(record['images'])  # 轉換為 JSON 格式
 
-        
         # 回傳資料，包含是否有下一頁
         return {"nextPage": nextPage, "data": records}
     
@@ -122,7 +120,6 @@ def get_attractions(page: int = Query(0), keyword: str = Query(None)):
         })
     
     finally:
-        # 確保關閉連線
         connection.close()
 
 
@@ -156,6 +153,7 @@ def get_attraction_detail(attractionId: int):
     finally:
         connection.close()
 
+
 @app.get("/api/mrts")
 def get_mrts():
     connection = get_db_connection()
@@ -180,6 +178,7 @@ def get_mrts():
     finally:
         connection.close()
 
+
 # --------------------- 使用者相關 API ---------------------
 # 讀取 JWT 環境變數
 JWT_SECRET = os.getenv("JWT_SECRET")
@@ -190,7 +189,6 @@ class User(BaseModel):
     name: str | None = None
     email: str
     password: str
-
 
 @app.post("/api/user")
 def user_signup(user: User):
@@ -216,7 +214,6 @@ def user_signup(user: User):
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
     finally:
         connection.close()
-
 
 @app.put("/api/user/auth")
 def user_signin(user: User):
@@ -250,7 +247,6 @@ def user_signin(user: User):
     finally:
         connection.close()
 
-
 @app.get("/api/user/auth")
 def get_current_user(request: Request):
     """取得目前登入使用者資訊"""
@@ -264,6 +260,148 @@ def get_current_user(request: Request):
         return {"data": payload}
     except PyJWTError:
         return JSONResponse(status_code=400, content={"error": True, "message": "Token 驗證失敗"})
+
+# --------------------- Booking API (新增的部分) ---------------------
+
+# 定義 Booking 輸入資料結構
+class BookingModel(BaseModel):
+    attractionId: int
+    date: str   # 預定日期 (格式例如 "2022-01-31")
+    time: str   # 預定時段 ("morning" 或 "afternoon")
+    price: int
+
+def verify_token(request: Request):
+    """共用的驗證 JWT 的方法，回傳 payload or None"""
+    auth = request.headers.get("Authorization")
+    if not auth or not auth.startswith("Bearer "):
+        return None
+    token = auth.split(" ")[1]
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return payload
+    except PyJWTError:
+        return None
+
+@app.get("/api/booking")
+def get_booking(request: Request):
+    """取得尚未確認下單的預定行程"""
+    payload = verify_token(request)
+    if not payload:
+        return JSONResponse(status_code=403, content={
+            "error": True,
+            "message": "未登入系統，拒絕存取"
+        })
+    
+    user_id = payload["id"]
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            # 取得使用者名稱
+            sql_user = "SELECT name FROM users WHERE id = %s"
+            cursor.execute(sql_user, (user_id,))
+            user = cursor.fetchone()
+            user_name = user["name"] if user else "使用者"
+
+            # 查詢使用者的預定行程
+            sql = "SELECT * FROM bookings WHERE user_id = %s LIMIT 1"
+            cursor.execute(sql, (user_id,))
+            booking = cursor.fetchone()
+            if not booking:
+                return {"data": None}
+            
+            # 取得景點資訊
+            sql_attraction = "SELECT id, name, address, images FROM attractions WHERE id = %s"
+            cursor.execute(sql_attraction, (booking["attraction_id"],))
+            attraction = cursor.fetchone()
+            if attraction:
+                images = json.loads(attraction["images"])
+                image = images[0] if isinstance(images, list) and len(images) > 0 else ""
+                attraction["image"] = image
+
+            booking_data = {
+                "userName": user_name, 
+                "attraction": attraction,
+                "date": booking["date"].strftime("%Y-%m-%d") if isinstance(booking["date"], (datetime,)) else str(booking["date"]),
+                "time": booking["time"],
+                "price": booking["price"]
+            }
+        return {"data": booking_data}
+    except Exception as e:
+        logging.error("取得預定行程時發生錯誤：%s", e)
+        return JSONResponse(status_code=500, content={
+            "error": True,
+            "message": "伺服器內部錯誤"
+        })
+    finally:
+        connection.close()
+
+
+@app.post("/api/booking")
+def create_booking(booking: BookingModel, request: Request):
+    """建立新的預定行程"""
+    payload = verify_token(request)
+    if not payload:
+        return JSONResponse(status_code=403, content={
+            "error": True,
+            "message": "未登入系統，拒絕存取"
+        })
+    user_id = payload["id"]
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            # 檢查該使用者是否已有預定資料，如果有則更新，否則插入新資料
+            check_sql = "SELECT * FROM bookings WHERE user_id = %s LIMIT 1"
+            cursor.execute(check_sql, (user_id,))
+            existing = cursor.fetchone()
+            if existing:
+                update_sql = """
+                    UPDATE bookings
+                    SET attraction_id = %s, date = %s, time = %s, price = %s
+                    WHERE user_id = %s
+                """
+                cursor.execute(update_sql, (booking.attractionId, booking.date, booking.time, booking.price, user_id))
+            else:
+                insert_sql = """
+                    INSERT INTO bookings (user_id, attraction_id, date, time, price)
+                    VALUES (%s, %s, %s, %s, %s)
+                """
+                cursor.execute(insert_sql, (user_id, booking.attractionId, booking.date, booking.time, booking.price))
+            connection.commit()
+        return {"ok": True}
+    except Exception as e:
+        logging.error("建立預定行程時發生錯誤：%s", e)
+        return JSONResponse(status_code=400, content={
+            "error": True,
+            "message": "請依照情境提供對應的錯誤訊息"
+        })
+    finally:
+        connection.close()
+
+@app.delete("/api/booking")
+def delete_booking(request: Request):
+    """刪除目前的預定行程"""
+    payload = verify_token(request)
+    if not payload:
+        return JSONResponse(status_code=403, content={
+            "error": True,
+            "message": "請依照情境提供對應的錯誤訊息"
+        })
+    user_id = payload["id"]
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            delete_sql = "DELETE FROM bookings WHERE user_id = %s"
+            cursor.execute(delete_sql, (user_id,))
+            connection.commit()
+        return {"ok": True}
+    except Exception as e:
+        logging.error("刪除預定行程發生錯誤：%s", e)
+        return JSONResponse(status_code=500, content={
+            "error": True,
+            "message": "伺服器內部錯誤"
+        })
+    finally:
+        connection.close()
 
 
 if __name__ == "__main__":
